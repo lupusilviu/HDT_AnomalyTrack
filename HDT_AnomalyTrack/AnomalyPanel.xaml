@@ -1,0 +1,16 @@
+﻿<UserControl x:Class="HDT_AnomalyTrack.AnomalyPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HDT_AnomalyTrack"
+             mc:Ignorable="d">
+    <Canvas HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Grid x:Name="MovableControl" Background="Black"
+              Width="240"
+              Canvas.Left="0" Canvas.Top="0">
+            <Image Stretch="Uniform" x:Name="MainImg"
+                   MinWidth="240" MaxWidth="240"/>
+        </Grid>
+    </Canvas>
+</UserControl>
