@@ -1,0 +1,113 @@
+﻿<UserControl x:Class="HDT_BGFightTracker.StatisticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:HDT_BGFightTracker"
+             mc:Ignorable="d" FontSize="10">
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:ValueToPercentableConverter x:Key="ValueToPercentableConverter"/>
+        <local:TimePassedSinceBinaryDate x:Key="TimePassedSinceBinaryDate"/>
+    </UserControl.Resources>
+    
+    <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" 
+            Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <Grid x:Name="MovableControl" Background="Black"
+              Width="240"
+              Canvas.Left="0" Canvas.Top="0"
+              DataContext="{Binding OpponentVM}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White"
+                       Text="{Binding Opponent.OpponentName, Mode=OneWay, FallbackValue='OPPONENT'}"/>
+            
+            <Separator Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                       Margin="0,1" IsHitTestVisible="False"/>
+            
+            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                   IsHitTestVisible="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" Foreground="White" HorizontalAlignment="Center"
+                           Text="{Binding Opponent.TotalBattles, StringFormat='Total Battles: {0}', Mode=OneWay, FallbackValue='Total Battles: 0'}"/>
+
+                <TextBlock Grid.Column="1" Foreground="White" HorizontalAlignment="Center"
+                           Text="{Binding Opponent.LastFightBinary,Converter={StaticResource TimePassedSinceBinaryDate}, Mode=OneWay, FallbackValue='Last Battle: 0 s ago'}"/>
+            </Grid>
+
+            <Separator Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
+                       Margin="0,1" IsHitTestVisible="False"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White" Text="WINS"/>
+            <TextBlock Grid.Row="4" Grid.Column="1" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White" Text="DRAWS"/>
+            <TextBlock Grid.Row="4" Grid.Column="2" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White" Text="LOSSES"/>
+
+            <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3"
+                       Margin="0,0" Height="0.5" IsHitTestVisible="False"/>
+
+            <TextBlock Grid.Row="6" Grid.Column="0" FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="LightGreen">
+                <Run Text="{Binding Opponent.Wins, Mode=OneWay, FallbackValue='0'}"/>
+                <Run>
+                    <Run.Text>
+                        <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" StringFormat="({0:#,0.0}%)">
+                            <Binding Path="Opponent.Wins"/>
+                            <Binding Path="Opponent.TotalBattles"/>
+                        </MultiBinding>
+                    </Run.Text>
+                </Run>
+            </TextBlock>
+            <TextBlock Grid.Row="6" Grid.Column="1" FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White">
+                <Run Text="{Binding Opponent.Draws, Mode=OneWay, FallbackValue='0'}"/>
+                <Run>
+                    <Run.Text>
+                        <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" StringFormat="({0:#,0.0}%)">
+                            <Binding Path="Opponent.Draws"/>
+                            <Binding Path="Opponent.TotalBattles"/>
+                        </MultiBinding>
+                    </Run.Text>
+                </Run>
+            </TextBlock>
+            <TextBlock Grid.Row="6" Grid.Column="2" FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="PaleVioletRed">
+                <Run Text="{Binding Opponent.Losses, Mode=OneWay, FallbackValue='0'}"/>
+                <Run>
+                    <Run.Text>
+                        <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" StringFormat="({0:#,0.0}%)">
+                            <Binding Path="Opponent.Losses"/>
+                            <Binding Path="Opponent.TotalBattles"/>
+                        </MultiBinding>
+                    </Run.Text>
+                </Run>
+            </TextBlock>
+            
+            <Separator Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
+                       Margin="0,1,0,0" IsHitTestVisible="False"/>
+
+        </Grid>
+    </Canvas>
+</UserControl>

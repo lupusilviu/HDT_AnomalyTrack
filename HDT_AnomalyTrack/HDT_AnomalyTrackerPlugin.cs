@@ -1,21 +1,20 @@
 ﻿using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Plugins;
-using HearthMirror;
 using System;
 using System.IO;
 using System.Windows.Controls;
-using Hearthstone_Deck_Tracker.Utility.MVVM;
 
-namespace HDT_AnomalyTrack
+namespace HDT_BGFightTracker
 {
-    //https://github.com/IBM5100o/HDT_BGrank/blob/main/HDT_BGrank/BGrankPlugin.cs
-    public class HDT_AnomalyTrackerPlugin : IPlugin
+    public class HDT_BGFightTrackererPlugin : IPlugin
     {
-        public string Name => "HDT_AnomalyTrack";
+        #region IPlugin Properties
 
-        public string Description => "Displays the current used anomaly";
+        public string Name => "HDT_BGFightTracker";
 
-        public string ButtonText => "Anomaly Track";
+        public string Description => "Displays the 1v1 statistics";
+
+        public string ButtonText => "BG Fight Tracker";
 
         public string Author => "RDUChatter";
 
@@ -23,10 +22,12 @@ namespace HDT_AnomalyTrack
 
         public MenuItem MenuItem { get; private set; }
 
-        private ViewModel _viewModel;
-        private AnomalyPanel _panel;
+        #endregion IPlugin Properties
 
-        public HDT_AnomalyTrackerPlugin()
+        private ViewModel _viewModel;
+        private StatisticsView _panel;
+
+        public HDT_BGFightTrackererPlugin()
         {
             _viewModel = new ViewModel();
         }
@@ -58,11 +59,9 @@ namespace HDT_AnomalyTrack
         {
             try
             {
-                File.AppendAllText("C:\\TEst\\Logs\\HSLogs.txt", "CreateVisual" + Environment.NewLine);
-                _panel = new AnomalyPanel();
+                _panel = new StatisticsView();
                 _panel.DataContext = _viewModel;
-                _viewModel.SetPanel(_panel);
-                _viewModel.TryLoadAlreadyStarted();
+
                 if (MenuItem == null)
                 {
                     MenuItem = new MenuItem()
@@ -78,19 +77,20 @@ namespace HDT_AnomalyTrack
                             GameEvents.OnGameStart.Add(_viewModel.OnGameStart);
                             GameEvents.OnTurnStart.Add(_viewModel.OnTurnStart);
                             GameEvents.OnGameEnd.Add(_viewModel.OnGameEnded);
+                            GameEvents.OnOpponentGet.Add(_viewModel.OnOpponentGet);
+                            GameEvents.OnEntityWillTakeDamage.Add(_viewModel.EntityTakeDamage);
 
                             Core.OverlayCanvas.Children.Add(_panel);
                         }
                         catch (Exception ex)
                         {
-                           
+
                         }
                     };
 
                     MenuItem.Unchecked += (sender, args) =>
                     {
                         Core.OverlayCanvas.Children.Remove(_panel);
-                        // _panel = null;
                     };
                 }
             }

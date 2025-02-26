@@ -1,124 +1,153 @@
-﻿using Hearthstone_Deck_Tracker;
+﻿using HearthDb.Enums;
+using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Enums;
-using Hearthstone_Deck_Tracker.Hearthstone;
-using Hearthstone_Deck_Tracker.Hearthstone.Entities;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Documents;
 
-namespace HDT_AnomalyTrack
+namespace HDT_BGFightTracker
 {
-    internal class ViewModel : INotifyPropertyChanged
+    internal class ViewModel
     {
-        public event PropertyChangedEventHandler PropertyChanged;
-        private AnomalyPanel _panel;
-        private Uri _anomalyUri;
+        #region Members
+
+        private string filePath = "C:\\temp\\logs\\myfile.txt";
+        private RoundResult _lastRoundResult;
+        private bool isInBattle;
+
+        #endregion Members
+
+        public OpponentViewModel OpponentVM { get; private set; }
 
         public ViewModel()
         {
-
-        }
-
-        public void SetPanel(AnomalyPanel panel)
-        {
-            _panel = panel;
-        }
-
-        private void RaisePropertyChanged(string name)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+            OpponentVM = new OpponentViewModel();
         }
 
         #region Plugin Methods
 
         internal void OnGameStart()
         {
-            Task.Factory.StartNew(() =>
-            {
-                try
-                {
-                    while (true)
-                    {
-                        Thread.Sleep(3 * 1000);
-                        if (_panel == null)
-                        {
-                            continue;
-                        }
-
-                        Entity gameEntity = Core.Game.GameEntity;
-                        if (gameEntity == null)
-                            return;
-
-                        var id = BattlegroundsUtils.GetBattlegroundsAnomalyDbfId(gameEntity);
-                        if (id.HasValue)
-                        {
-                            Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                try
-                                {
-                                    _panel.OnDisplayAnomaly(id.Value);
-                                }
-                                catch { }
-                            });
-                            break;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                   
-                }
-
-            });
+            OpponentVM.SetIsVisible(true);
         }
 
-        public void TryLoadAlreadyStarted()
+        internal void OnTurnStart(ActivePlayer player)
         {
             try
             {
-                Entity gameEntity = Core.Game.GameEntity;
-                if (gameEntity == null)
-                    return;
-
-                var id = BattlegroundsUtils.GetBattlegroundsAnomalyDbfId(gameEntity);
-
-                if (id.HasValue)
+                isInBattle = player == ActivePlayer.Opponent;
+                if (isInBattle == false)
                 {
-                    Application.Current.Dispatcher.Invoke(() =>
+                    if (_lastRoundResult != null)
                     {
-                        try
+                        _lastRoundResult.Result = battleResult;
+                        File.AppendAllLines(filePath, new string[]
                         {
-                            _panel.OnDisplayAnomaly(id.Value);
-                        }
-                        catch { }
-                    });
+                            String.Format( "LAST ROUND: {0}. {1} | R: {2} | Dmg: {3}",
+                            _lastRoundResult.RoundNumber,
+                            _lastRoundResult.OpponentName,
+                            _lastRoundResult.Result,
+                            _lastRoundResult.Damage)
+                        });
+
+                        bool? result = null;
+                        if (_lastRoundResult.Result == "WON")
+                            result = true;
+                        else if (_lastRoundResult.Result == "LOST")
+                            result = false;
+                        OpponentDB.AddBattleInfo(_lastRoundResult.OpponentName, result);
+                        var opponent = OpponentDB.GetModel(_lastRoundResult.OpponentName);
+                        OpponentVM.SetCurrentOpponent(opponent);
+                    }
+
+                    File.AppendAllLines(filePath, new string[] { "TURN STARTED" });
+                    battleResult = "DRAW";
+                    _lastRoundResult = new RoundResult();
+                }
+                else
+                {
+                    UpdateOpponent();
+                    _lastRoundResult = new RoundResult();
+
+                    File.AppendAllLines(filePath, new string[] { "BATTLE STARTED" });
+                    var current = Core.Game.Player.Hero;
+                    var armor = current.GetTag(GameTag.ARMOR);
+                    _lastRoundResult.HPBefore = current.Health + armor;
+                    _lastRoundResult.RoundNumber = Core.Game.GetTurnNumber();
+                }
+            }
+            catch
+            {
+
+            }
+        }
+
+        internal void OnGameEnded()
+        {
+            try
+            {
+                OpponentVM.SetIsVisible(false);
+                if (_lastRoundResult != null)
+                {
+                    bool? result = null;
+                    if (_lastRoundResult.Result == "WON")
+                        result = true;
+                    else if (_lastRoundResult.Result == "LOST")
+                        result = false;
+
+                    OpponentDB.AddBattleInfo(_lastRoundResult.OpponentName, result);
                 }
             }
             catch { }
         }
 
-        internal void OnTurnStart(ActivePlayer player)
-        {
+        string battleResult = "DRAW";
 
-        }
-
-        internal void OnGameEnded()
+        internal void OnOpponentGet()
         {
-           if(_panel!=null)
+            if (isInBattle == true
+                && _lastRoundResult != null
+                && String.IsNullOrEmpty(_lastRoundResult.OpponentName))
             {
-                _panel.Visibility = Visibility.Hidden;
+                UpdateOpponent();
             }
         }
 
+        internal void EntityTakeDamage(PredamageInfo info)
+        {
+            try
+            {
+                if (!isInBattle || !info.Entity.IsHero) return;
 
+                var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
+                _lastRoundResult.OpponentName = opponent.Name;
+                File.AppendAllLines(filePath, new string[] { "FIGHTING GHOST ID:" + info.Entity.CardId+" ("+
+                    opponent.IsPlayer+")"+" ("+opponent.IsInGraveyard+")"});
+
+                if (info.Entity.IsControlledBy(Core.Game.Player.Id))
+                {
+                    //We dagamed
+                    battleResult = "LOST";
+                    _lastRoundResult.Damage = info.Value;
+                }
+                else
+                {
+                    battleResult = "WON";
+                    _lastRoundResult.Damage = info.Value;
+                }
+            }
+            catch { }
+        }
 
         #endregion Plugin Methods
+
+        #region Private Methods
+
+        private void UpdateOpponent()
+        {
+
+        }
+
+        #endregion Private Methods
     }
 }
