@@ -25,8 +25,8 @@ namespace HDT_BGFightTracker
 
         internal void OnGameStart()
         {
-            OpponentVM.SetIsVisible(true);
             OpponentVM.SetCurrentOpponent(null);
+            OpponentVM.SetIsVisible(true);
         }
 
         internal void OnTurnStart(ActivePlayer player)
@@ -66,7 +66,7 @@ namespace HDT_BGFightTracker
             {
                 Task.Factory.StartNew(() =>
                 {
-                    System.Threading.Thread.Sleep(2 * 1000);// Allow a refresh before hiding.
+                    System.Threading.Thread.Sleep(5 * 1000);// Allow a refresh before hiding.
                     OpponentVM.SetIsVisible(false);
                 });
 
@@ -86,7 +86,7 @@ namespace HDT_BGFightTracker
                 if (_isInBattle == true)
                 {
                     var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
-                    var opponentDB = OpponentDB.GetModel(opponent.Name);
+                   
                     _currentOppName = opponent.Name;
                     if (opponent.CardId == "TB_BaconShop_HERO_KelThuzad")
                     {
@@ -94,6 +94,7 @@ namespace HDT_BGFightTracker
                         _currentOppName = "KelThuzad (Ghost)";
                     }
 
+                    var opponentDB = OpponentDB.GetModel(_currentOppName);
                     OpponentVM.SetCurrentOpponent(opponentDB);
                 }
             }
