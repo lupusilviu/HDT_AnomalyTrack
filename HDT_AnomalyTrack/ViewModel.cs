@@ -11,6 +11,7 @@ namespace HDT_BGFightTracker
         private bool _isInBattle;
         private bool? _currentRoundResult;
         private string _currentOppName;
+        private int _currentRoundNumber;
 
         #endregion Members
 
@@ -41,6 +42,8 @@ namespace HDT_BGFightTracker
                         OpponentDB.AddBattleInfo(_currentOppName, _currentRoundResult);
                         var opponent = OpponentDB.GetModel(_currentOppName);
                         OpponentVM.SetCurrentOpponent(opponent);
+
+                        OpponentVM.AddRoundResults(_currentRoundNumber, _currentRoundResult);
                     }
 
                     _currentRoundResult = null;
@@ -52,6 +55,7 @@ namespace HDT_BGFightTracker
                     //var armor = current.GetTag(GameTag.ARMOR);
                     //_lastRoundResult.HPBefore = current.Health + armor;
                     //_lastRoundResult.RoundNumber = Core.Game.GetTurnNumber();
+                    _currentRoundNumber = Core.Game.GetTurnNumber();
                 }
             }
             catch
@@ -86,7 +90,7 @@ namespace HDT_BGFightTracker
                 if (_isInBattle == true)
                 {
                     var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
-                   
+
                     _currentOppName = opponent.Name;
                     if (opponent.CardId == "TB_BaconShop_HERO_KelThuzad")
                     {
