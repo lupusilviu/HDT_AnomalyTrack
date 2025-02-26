@@ -18,7 +18,7 @@ namespace HDT_BGFightTracker
 
         public string Author => "RDUChatter";
 
-        public Version Version => new Version(1, 0, 1);
+        public Version Version => new Version(1, 0, 0);
 
         public MenuItem MenuItem { get; private set; }
 
@@ -29,6 +29,7 @@ namespace HDT_BGFightTracker
 
         public HDT_BGFightTrackererPlugin()
         {
+            OpponentDB.LoadDatabase();
             _viewModel = new ViewModel();
         }
 

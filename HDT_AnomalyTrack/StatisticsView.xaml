@@ -4,20 +4,24 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:HDT_BGFightTracker"
-             mc:Ignorable="d" FontSize="10">
+             mc:Ignorable="d" FontSize="12">
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:ValueToPercentableConverter x:Key="ValueToPercentableConverter"/>
         <local:TimePassedSinceBinaryDate x:Key="TimePassedSinceBinaryDate"/>
+        <local:NullToVisibleConverter x:Key="NullToVisibleConverter"/>
     </UserControl.Resources>
-    
+
     <Canvas HorizontalAlignment="Left" VerticalAlignment="Top" 
-            Visibility="{Binding IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            Visibility="{Binding OpponentVM.IsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+
         <Grid x:Name="MovableControl" Background="Black"
               Width="240"
               Canvas.Left="0" Canvas.Top="0"
               DataContext="{Binding OpponentVM}">
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -32,15 +36,27 @@
                 <ColumnDefinition Width="1*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
-            
+
+            <Grid Grid.Row="0" Grid.RowSpan="9"
+                  Grid.Column="0" Grid.ColumnSpan="3" Panel.ZIndex="100"
+                  Background="Black"
+                  Visibility="{Binding Opponent, Converter={StaticResource NullToVisibleConverter}}">
+
+                <TextBlock Text="Waiting for first battle ..."
+                           FontSize="20" Foreground="White"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+
             <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
-                       FontSize="14" IsHitTestVisible="False"
+                       FontSize="18" IsHitTestVisible="False" FontWeight="Bold"
+                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                        HorizontalAlignment="Center" Foreground="White"
                        Text="{Binding Opponent.OpponentName, Mode=OneWay, FallbackValue='OPPONENT'}"/>
-            
+
             <Separator Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
                        Margin="0,1" IsHitTestVisible="False"/>
-            
+
             <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
                    IsHitTestVisible="False">
                 <Grid.ColumnDefinitions>
@@ -68,46 +84,58 @@
             <Separator Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3"
                        Margin="0,0" Height="0.5" IsHitTestVisible="False"/>
 
-            <TextBlock Grid.Row="6" Grid.Column="0" FontSize="14" IsHitTestVisible="False"
-                       HorizontalAlignment="Center" Foreground="LightGreen">
-                <Run Text="{Binding Opponent.Wins, Mode=OneWay, FallbackValue='0'}"/>
-                <Run>
-                    <Run.Text>
-                        <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" StringFormat="({0:#,0.0}%)">
-                            <Binding Path="Opponent.Wins"/>
-                            <Binding Path="Opponent.TotalBattles"/>
-                        </MultiBinding>
-                    </Run.Text>
-                </Run>
-            </TextBlock>
-            <TextBlock Grid.Row="6" Grid.Column="1" FontSize="14" IsHitTestVisible="False"
-                       HorizontalAlignment="Center" Foreground="White">
-                <Run Text="{Binding Opponent.Draws, Mode=OneWay, FallbackValue='0'}"/>
-                <Run>
-                    <Run.Text>
-                        <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" StringFormat="({0:#,0.0}%)">
-                            <Binding Path="Opponent.Draws"/>
-                            <Binding Path="Opponent.TotalBattles"/>
-                        </MultiBinding>
-                    </Run.Text>
-                </Run>
-            </TextBlock>
-            <TextBlock Grid.Row="6" Grid.Column="2" FontSize="14" IsHitTestVisible="False"
-                       HorizontalAlignment="Center" Foreground="PaleVioletRed">
-                <Run Text="{Binding Opponent.Losses, Mode=OneWay, FallbackValue='0'}"/>
-                <Run>
-                    <Run.Text>
-                        <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" StringFormat="({0:#,0.0}%)">
-                            <Binding Path="Opponent.Losses"/>
-                            <Binding Path="Opponent.TotalBattles"/>
-                        </MultiBinding>
-                    </Run.Text>
-                </Run>
-            </TextBlock>
-            
-            <Separator Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
-                       Margin="0,1,0,0" IsHitTestVisible="False"/>
+            <TextBlock Grid.Row="6" Grid.Column="0" 
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="LightGreen"
+                       Text="{Binding Opponent.Wins, Mode=OneWay, FallbackValue='0'}"/>
+            <TextBlock Grid.Row="6" Grid.Column="1" 
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White"
+                       Text="{Binding Opponent.Draws, Mode=OneWay, FallbackValue='0'}"/>
+            <TextBlock Grid.Row="6" Grid.Column="2" 
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="PaleVioletRed"
+                       Text="{Binding Opponent.Losses, Mode=OneWay, FallbackValue='0'}"/>
 
+            <Separator Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="3"
+                       Margin="0,0" IsHitTestVisible="False"/>
+
+            <TextBlock Grid.Row="8" Grid.Column="0" 
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="LightGreen">
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" 
+                                  StringFormat="({0:#,0.0}%)">
+                        <Binding Path="Opponent.Wins"/>
+                        <Binding Path="Opponent.TotalBattles"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock Grid.Row="8" Grid.Column="1" 
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="White">
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" 
+                                  StringFormat="({0:#,0.0}%)">
+                        <Binding Path="Opponent.Draws"/>
+                        <Binding Path="Opponent.TotalBattles"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+            <TextBlock Grid.Row="8" Grid.Column="2" 
+                       FontSize="14" IsHitTestVisible="False"
+                       HorizontalAlignment="Center" Foreground="PaleVioletRed">
+                <TextBlock.Text>
+                    <MultiBinding Converter="{StaticResource ValueToPercentableConverter}" 
+                                  StringFormat="({0:#,0.0}%)">
+                        <Binding Path="Opponent.Losses"/>
+                        <Binding Path="Opponent.TotalBattles"/>
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
+
+            <Separator Grid.Row="9" Grid.Column="0" Grid.ColumnSpan="3"
+                       Margin="0,1,0,0" IsHitTestVisible="False"/>
         </Grid>
     </Canvas>
 </UserControl>

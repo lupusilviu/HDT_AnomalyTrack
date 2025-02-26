@@ -1,9 +1,6 @@
-﻿using HearthDb.Enums;
-using Hearthstone_Deck_Tracker.API;
+﻿using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Enums;
-using System;
-using System.IO;
-using System.Windows.Documents;
+using System.Threading.Tasks;
 
 namespace HDT_BGFightTracker
 {
@@ -11,9 +8,9 @@ namespace HDT_BGFightTracker
     {
         #region Members
 
-        private string filePath = "C:\\temp\\logs\\myfile.txt";
-        private RoundResult _lastRoundResult;
-        private bool isInBattle;
+        private bool _isInBattle;
+        private bool? _currentRoundResult;
+        private string _currentOppName;
 
         #endregion Members
 
@@ -29,51 +26,32 @@ namespace HDT_BGFightTracker
         internal void OnGameStart()
         {
             OpponentVM.SetIsVisible(true);
+            OpponentVM.SetCurrentOpponent(null);
         }
 
         internal void OnTurnStart(ActivePlayer player)
         {
             try
             {
-                isInBattle = player == ActivePlayer.Opponent;
-                if (isInBattle == false)
+                _isInBattle = player == ActivePlayer.Opponent;
+                if (_isInBattle == false)
                 {
-                    if (_lastRoundResult != null)
+                    if (string.IsNullOrEmpty(_currentOppName) == false)
                     {
-                        _lastRoundResult.Result = battleResult;
-                        File.AppendAllLines(filePath, new string[]
-                        {
-                            String.Format( "LAST ROUND: {0}. {1} | R: {2} | Dmg: {3}",
-                            _lastRoundResult.RoundNumber,
-                            _lastRoundResult.OpponentName,
-                            _lastRoundResult.Result,
-                            _lastRoundResult.Damage)
-                        });
-
-                        bool? result = null;
-                        if (_lastRoundResult.Result == "WON")
-                            result = true;
-                        else if (_lastRoundResult.Result == "LOST")
-                            result = false;
-                        OpponentDB.AddBattleInfo(_lastRoundResult.OpponentName, result);
-                        var opponent = OpponentDB.GetModel(_lastRoundResult.OpponentName);
+                        OpponentDB.AddBattleInfo(_currentOppName, _currentRoundResult);
+                        var opponent = OpponentDB.GetModel(_currentOppName);
                         OpponentVM.SetCurrentOpponent(opponent);
                     }
 
-                    File.AppendAllLines(filePath, new string[] { "TURN STARTED" });
-                    battleResult = "DRAW";
-                    _lastRoundResult = new RoundResult();
+                    _currentRoundResult = null;
                 }
                 else
                 {
-                    UpdateOpponent();
-                    _lastRoundResult = new RoundResult();
-
-                    File.AppendAllLines(filePath, new string[] { "BATTLE STARTED" });
-                    var current = Core.Game.Player.Hero;
-                    var armor = current.GetTag(GameTag.ARMOR);
-                    _lastRoundResult.HPBefore = current.Health + armor;
-                    _lastRoundResult.RoundNumber = Core.Game.GetTurnNumber();
+                    //_lastRoundResult = new RoundResult();
+                    //var current = Core.Game.Player.Hero;
+                    //var armor = current.GetTag(GameTag.ARMOR);
+                    //_lastRoundResult.HPBefore = current.Health + armor;
+                    //_lastRoundResult.RoundNumber = Core.Game.GetTurnNumber();
                 }
             }
             catch
@@ -86,68 +64,68 @@ namespace HDT_BGFightTracker
         {
             try
             {
-                OpponentVM.SetIsVisible(false);
-                if (_lastRoundResult != null)
+                Task.Factory.StartNew(() =>
                 {
-                    bool? result = null;
-                    if (_lastRoundResult.Result == "WON")
-                        result = true;
-                    else if (_lastRoundResult.Result == "LOST")
-                        result = false;
+                    System.Threading.Thread.Sleep(2 * 1000);// Allow a refresh before hiding.
+                    OpponentVM.SetIsVisible(false);
+                });
 
-                    OpponentDB.AddBattleInfo(_lastRoundResult.OpponentName, result);
-                }
+                OpponentDB.AddBattleInfo(_currentOppName, _currentRoundResult);
+
+                // Save at the end due to scenario where if you restart while playing, you get all the information again.
+                OpponentDB.SaveDatabase();
             }
             catch { }
         }
 
-        string battleResult = "DRAW";
-
         internal void OnOpponentGet()
         {
-            if (isInBattle == true
-                && _lastRoundResult != null
-                && String.IsNullOrEmpty(_lastRoundResult.OpponentName))
+
+            try
             {
-                UpdateOpponent();
+                if (_isInBattle == true)
+                {
+                    var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
+                    var opponentDB = OpponentDB.GetModel(opponent.Name);
+                    _currentOppName = opponent.Name;
+                    if (opponent.CardId == "TB_BaconShop_HERO_KelThuzad")
+                    {
+                        // We are fighting a ghost
+                        _currentOppName = "KelThuzad (Ghost)";
+                    }
+
+                    OpponentVM.SetCurrentOpponent(opponentDB);
+                }
             }
+            catch { }
         }
 
         internal void EntityTakeDamage(PredamageInfo info)
         {
             try
             {
-                if (!isInBattle || !info.Entity.IsHero) return;
+                if (!_isInBattle || !info.Entity.IsHero) return;
 
                 var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
-                _lastRoundResult.OpponentName = opponent.Name;
-                File.AppendAllLines(filePath, new string[] { "FIGHTING GHOST ID:" + info.Entity.CardId+" ("+
-                    opponent.IsPlayer+")"+" ("+opponent.IsInGraveyard+")"});
+                _currentOppName = opponent.Name;
+                if (info.Entity.CardId == "TB_BaconShop_HERO_KelThuzad")
+                {
+                    // We are fighting a ghost
+                    _currentOppName = "KelThuzad (Ghost)";
+                }
 
                 if (info.Entity.IsControlledBy(Core.Game.Player.Id))
                 {
-                    //We dagamed
-                    battleResult = "LOST";
-                    _lastRoundResult.Damage = info.Value;
+                    _currentRoundResult = false;
                 }
                 else
                 {
-                    battleResult = "WON";
-                    _lastRoundResult.Damage = info.Value;
+                    _currentRoundResult = true;
                 }
             }
             catch { }
         }
 
         #endregion Plugin Methods
-
-        #region Private Methods
-
-        private void UpdateOpponent()
-        {
-
-        }
-
-        #endregion Private Methods
     }
 }

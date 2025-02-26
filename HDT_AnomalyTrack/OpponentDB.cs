@@ -1,11 +1,17 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace HDT_BGFightTracker
 {
     internal class OpponentDB
     {
+        #region Members
+
         private static Dictionary<string, OpponentStatisticsModel> _database;
+        private static readonly string _localFileName = "HDT_BGFightTracker_DB.txt";
+        #endregion Members
 
         #region Public Methods
 
@@ -17,7 +23,15 @@ namespace HDT_BGFightTracker
                 if (_database.TryGetValue(opponent, out result))
                     return result;
 
-                result = null;
+                result = new OpponentStatisticsModel()
+                {
+                    OpponentName = opponent,
+                    Draws = 0,
+                    Wins = 0,
+                    Losses = 0,
+                    TotalBattles = 0,
+                    LastFightBinary = 0
+                };
             }
             catch { }
 
@@ -36,7 +50,8 @@ namespace HDT_BGFightTracker
                         OpponentName = opponent,
                         Draws = 0,
                         Wins = 0,
-                        Losses = 0
+                        Losses = 0,
+                        TotalBattles = 0
                     };
 
                     _database.Add(opponent, opp);
@@ -55,6 +70,7 @@ namespace HDT_BGFightTracker
                 {
                     opp.Losses += 1;
                 }
+                opp.TotalBattles += 1;
             }
             catch { }
         }
@@ -64,6 +80,19 @@ namespace HDT_BGFightTracker
             try
             {
                 //TODO: Load from local file
+                string tempPath = Path.GetTempPath();
+                string filePath = Path.Combine(tempPath, _localFileName);
+                File.WriteAllText("C:\\test\\logs\\mypath.txt", filePath);
+                if (File.Exists(filePath) == true)
+                {
+                    string content = File.ReadAllText(filePath);
+                    _database = JsonConvert.DeserializeObject<Dictionary<string, OpponentStatisticsModel>>(content);
+                }
+                else
+                {
+                    _database = new Dictionary<string, OpponentStatisticsModel>();
+                    SaveDatabase();
+                }
             }
             catch { }
         }
@@ -72,9 +101,17 @@ namespace HDT_BGFightTracker
         {
             try
             {
-                //TODO: Save to local file
+                string serializedContent = JsonConvert.SerializeObject(_database);
+
+                //On version update, the folder changes.
+                string tempPath = Path.GetTempPath();
+                string filePath = Path.Combine(tempPath, _localFileName);
+                File.WriteAllText(filePath, serializedContent);
             }
-            catch { }
+            catch (Exception ex)
+            {
+                File.AppendAllLines("C:\\test\\logs\\mypath.txt", new string[] { ex.Message });
+            }
         }
 
         #endregion Public Methods

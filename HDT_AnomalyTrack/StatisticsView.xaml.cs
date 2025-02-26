@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hearthstone_Deck_Tracker.Utility.Extensions;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -20,6 +21,8 @@ namespace HDT_BGFightTracker
             MovableControl.MouseMove += MovableControl_MouseMove;
             MovableControl.MouseUp += MovableControl_MouseUp;
             MovableControl.RenderTransform = transform;
+
+            OverlayExtensions.SetIsOverlayHitTestVisible(MovableControl, true);
         }
 
         private void MovableControl_MouseDown(object sender, MouseButtonEventArgs e)

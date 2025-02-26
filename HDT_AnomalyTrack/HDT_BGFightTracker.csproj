@@ -7,8 +7,8 @@
     <ProjectGuid>{DCD50578-7B67-4C07-968D-45A6171365A1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>HDT_AnomalyTrack</RootNamespace>
-    <AssemblyName>HDT_AnomalyTrack</AssemblyName>
+    <RootNamespace>HDT_BGFightTracker</RootNamespace>
+    <AssemblyName>HDT_BGFightTracker</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -47,6 +47,11 @@
       <HintPath>References\MahApps.Metro.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.1.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>References\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -69,7 +74,7 @@
     <Compile Include="StatisticsView.xaml.cs">
       <DependentUpon>StatisticsView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="HDT_AnomalyTrackerPlugin.cs" />
+    <Compile Include="HDT_BGFightTrackerPlugin.cs" />
     <Compile Include="OpponentDB.cs" />
     <Compile Include="OpponentStatisticsModel.cs" />
     <Compile Include="OpponentViewModel.cs" />
