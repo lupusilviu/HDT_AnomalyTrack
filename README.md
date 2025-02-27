@@ -24,6 +24,4 @@ The app:
 - **Tracks**:
   - The result of a fight (Win, Draw, Loss).
   - Saves the results locally.
-  - Cards played by your opponent.
-  - Your opponent's handcount, deckcount and probablities of him having/drawing cards.
-  - How long your opponent had each card in his hand and what cards have been mulliganed, stolen or returned.
+  - Displays the full Combat History during each game.
