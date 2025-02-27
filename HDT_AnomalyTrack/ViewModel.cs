@@ -68,16 +68,16 @@ namespace HDT_BGFightTracker
         {
             try
             {
-                Task.Factory.StartNew(() =>
-                {
-                    System.Threading.Thread.Sleep(5 * 1000);// Allow a refresh before hiding.
-                    OpponentVM.SetIsVisible(false);
-                });
-
                 OpponentDB.AddBattleInfo(_currentOppName, _currentRoundResult);
 
                 // Save at the end due to scenario where if you restart while playing, you get all the information again.
                 OpponentDB.SaveDatabase();
+
+                Task.Factory.StartNew(() =>
+                {
+                    System.Threading.Thread.Sleep(10 * 1000);// Allow a refresh before hiding.
+                    OpponentVM.SetIsVisible(false);
+                });
             }
             catch { }
         }
