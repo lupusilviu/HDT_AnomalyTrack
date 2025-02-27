@@ -26,6 +26,6 @@ An in-game overlay:
 The app: 
 - **Tracks**:
   - The result of a fight (Win, Draw, Loss).
-  - Saves the results locally.
+  - Saves the results locally (in Temp folder).
   - Displays the full Combat History during each game.
 
