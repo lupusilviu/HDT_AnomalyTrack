@@ -7,9 +7,9 @@ Hearthstone Deck Tracker is an automatic deck tracker and deck manager for Heart
   - [HDT](https://github.com/HearthSim/Hearthstone-Deck-Tracker) installed.
   - BattleNet with Hearstone installed.
 
-1.Download the **HDT_BGFightTracker.zip** from [here](https://github.com/lupusilviu/HDT_AnomalyTrack/releases).  
-2.Open the HDT, choose Options->Tracker->Plugins->Plugins Folder.  
+1.Download the **HDT_BGFightTracker.zip** from [here](https://github.com/lupusilviu/HDT_BGFightTracker/releases).  
 
+2.Open the HDT, choose Options->Tracker->Plugins->Plugins Folder.  
 
 3.Put the **HDT_BGFightTracker.dll** into the plugins folder.  
 
