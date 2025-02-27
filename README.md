@@ -9,21 +9,17 @@ Hearthstone Deck Tracker is an automatic deck tracker and deck manager for Heart
 
 1.Download the **HDT_BGFightTracker.zip** from [here](https://github.com/lupusilviu/HDT_AnomalyTrack/releases).  
 2.Open the HDT, choose Options->Tracker->Plugins->Plugins Folder.  
-![image2](https://hackmd.io/_uploads/ByidUre0a.jpg)  
+
 
 3.Put the **HDT_BGFightTracker.dll** into the plugins folder.  
 
 4.Restart the HDT and enable the plugin.  
-![image3](https://hackmd.io/_uploads/SkrWwrx0p.jpg)  
+
 
 ## Features
 An in-game overlay:
 
-![Overlay](https://github.com/HearthSim/Hearthstone-Deck-Tracker/raw/master/raw-assets/readme/overlay.png "Overlay")
-
 The app: 
-
-![Tracker](https://github.com/HearthSim/Hearthstone-Deck-Tracker/raw/master/raw-assets/readme/hdt-ui.png "HDT UI")
 
 - **Tracks**:
   - The result of a fight (Win, Draw, Loss).
