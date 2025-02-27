@@ -1,0 +1,12 @@
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\bin\Debug\HDT_BGFightTracker.dll
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\bin\Debug\HDT_BGFightTracker.pdb
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker.csproj.AssemblyReference.cache
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\StatisticsView.g.cs
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\GeneratedInternalTypeHelper.g.cs
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker_MarkupCompile.cache
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker_MarkupCompile.lref
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\StatisticsView.baml
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker.g.resources
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker.csproj.CoreCompileInputs.cache
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker.dll
+D:\Outsourcing\HDT_AnomalyTrack\HDT_AnomalyTrack\obj\Debug\HDT_BGFightTracker.pdb
