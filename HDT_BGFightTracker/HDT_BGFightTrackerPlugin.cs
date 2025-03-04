@@ -1,13 +1,19 @@
 ﻿using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Plugins;
 using System;
-using System.IO;
 using System.Windows.Controls;
 
 namespace HDT_BGFightTracker
 {
     public class HDT_BGFightTrackererPlugin : IPlugin
     {
+        #region Members
+
+        private ViewModel _viewModel;
+        private StatisticsView _panel;
+
+        #endregion Members
+
         #region IPlugin Properties
 
         public string Name => "HDT_BGFightTracker";
@@ -24,14 +30,16 @@ namespace HDT_BGFightTracker
 
         #endregion IPlugin Properties
 
-        private ViewModel _viewModel;
-        private StatisticsView _panel;
+        #region Constructor
 
         public HDT_BGFightTrackererPlugin()
         {
-            OpponentDB.LoadDatabase();
-            _viewModel = new ViewModel();
+            Initialize();
         }
+
+        #endregion Constructor
+
+        #region IPlugin Methods
 
         public void OnButtonPress()
         {
@@ -40,52 +48,55 @@ namespace HDT_BGFightTracker
 
         public void OnLoad()
         {
-            //STARTED
+            LogsHelper.WriteToFile("OnLoad");
             CreateVisual();
             MenuItem.IsChecked = true;
         }
 
         public void OnUnload()
         {
-            //ENDED
+            LogsHelper.WriteToFile("OnUnload");
             MenuItem.IsChecked = false;
         }
 
         public void OnUpdate()
         {
-
+            //This is called very often.
         }
+
+        #endregion IPlugin Methods
+
+        #region Private Methods
 
         private void CreateVisual()
         {
             try
             {
-                _panel = new StatisticsView();
-                _panel.DataContext = _viewModel;
-
                 if (MenuItem == null)
                 {
+                    if (_viewModel == null)
+                        Initialize();
+
+                    LogsHelper.WriteToFile("CreateVisual: Attaching to events");
                     MenuItem = new MenuItem()
                     {
                         Header = ButtonText
                     };
                     MenuItem.IsCheckable = true;
 
-                    MenuItem.Checked += async (sender, args) =>
+                    MenuItem.Checked += (sender, args) =>
                     {
                         try
                         {
-                            GameEvents.OnGameStart.Add(_viewModel.OnGameStart);
-                            GameEvents.OnTurnStart.Add(_viewModel.OnTurnStart);
-                            GameEvents.OnGameEnd.Add(_viewModel.OnGameEnded);
-                            GameEvents.OnOpponentGet.Add(_viewModel.OnOpponentGet);
-                            GameEvents.OnEntityWillTakeDamage.Add(_viewModel.EntityTakeDamage);
+                            LogsHelper.WriteToFile("CreateVisual: Attaching");
+                            _viewModel.AttachToHDTEvents();
 
                             Core.OverlayCanvas.Children.Add(_panel);
+                            LogsHelper.WriteToFile("CreateVisual: Panel Added");
                         }
                         catch (Exception ex)
                         {
-
+                            LogsHelper.WriteToFile("ERR CreateVisual: " + ex.Message);
                         }
                     };
 
@@ -94,11 +105,34 @@ namespace HDT_BGFightTracker
                         Core.OverlayCanvas.Children.Remove(_panel);
                     };
                 }
+                else
+                {
+                    LogsHelper.WriteToFile("CreateVisual: Already Attached to events");
+                }
             }
             catch (Exception ex)
             {
-                File.AppendAllText("C:\\TEst\\Logs\\HSLogs.txt", "ERR1:" + ex.Message + Environment.NewLine);
+                LogsHelper.WriteToFile("ERR CreateVisual " + ex.Message);
             }
         }
+
+        private void Initialize()
+        {
+            try
+            {
+                LogsHelper.WriteToFile("CreateVisual: Init");
+
+                OpponentDB.LoadDatabase();
+                _viewModel = new ViewModel();
+                _panel = new StatisticsView();
+                _panel.DataContext = _viewModel;
+            }
+            catch (Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR CreateVisual: " + ex.Message);
+            }
+        }
+
+        #endregion Private Methods
     }
 }

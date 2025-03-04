@@ -33,7 +33,10 @@ namespace HDT_BGFightTracker
                     LastFightBinary = 0
                 };
             }
-            catch { }
+            catch(Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR DB GetModel: " + ex.Message);
+            }
 
             return result;
         }
@@ -42,6 +45,8 @@ namespace HDT_BGFightTracker
         {
             try
             {
+                LogsHelper.WriteToFile("DB: AddBattleInfo " + opponent);
+
                 OpponentStatisticsModel opp = new OpponentStatisticsModel();
                 if (_database.TryGetValue(opponent, out opp) == false)
                 {
@@ -72,17 +77,19 @@ namespace HDT_BGFightTracker
                 }
                 opp.TotalBattles += 1;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR DB AddBattleInfo: " + ex.Message);
+            }
         }
 
         public static void LoadDatabase()
         {
             try
             {
-                //TODO: Load from local file
+                LogsHelper.WriteToFile("DB: LoadDatabase");
                 string tempPath = Path.GetTempPath();
                 string filePath = Path.Combine(tempPath, _localFileName);
-                File.WriteAllText("C:\\test\\logs\\mypath.txt", filePath);
                 if (File.Exists(filePath) == true)
                 {
                     string content = File.ReadAllText(filePath);
@@ -90,17 +97,22 @@ namespace HDT_BGFightTracker
                 }
                 else
                 {
+                    LogsHelper.WriteToFile("DB: LoadDatabase. No previous data found");
                     _database = new Dictionary<string, OpponentStatisticsModel>();
                     SaveDatabase();
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR DB LoadDatabase: " + ex.Message);
+            }
         }
 
         public static void SaveDatabase()
         {
             try
             {
+                LogsHelper.WriteToFile("DB: SaveDatabase");
                 string serializedContent = JsonConvert.SerializeObject(_database);
 
                 //On version update, the folder changes.
@@ -110,7 +122,7 @@ namespace HDT_BGFightTracker
             }
             catch (Exception ex)
             {
-                File.AppendAllLines("C:\\test\\logs\\mypath.txt", new string[] { ex.Message });
+                LogsHelper.WriteToFile("ERR DB SaveDatabase: " + ex.Message);
             }
         }
 

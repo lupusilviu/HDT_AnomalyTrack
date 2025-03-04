@@ -1,6 +1,8 @@
 ﻿using Hearthstone_Deck_Tracker.API;
 using Hearthstone_Deck_Tracker.Enums;
+using System;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace HDT_BGFightTracker
 {
@@ -15,28 +17,73 @@ namespace HDT_BGFightTracker
 
         #endregion Members
 
+        #region Properties
         public OpponentViewModel OpponentVM { get; private set; }
+
+        public ICommand OnButtonPressedCommand { get; private set; }
+        #endregion Properties
+
+
 
         public ViewModel()
         {
             OpponentVM = new OpponentViewModel();
+            OnButtonPressedCommand = new RelayCommand(OnButtonPressedCommand_Execute);
         }
+
+        #region OnButtonPressedCommand
+
+        private void OnButtonPressedCommand_Execute(object parameter)
+        {
+            LogsHelper.WriteToFile("OnButtonPressedCommand_Execute");
+            AttachToHDTEvents();
+        }
+
+        #endregion OnButtonPressedCommand
 
         #region Plugin Methods
 
-        internal void OnGameStart()
-        {
-            OpponentVM.SetCurrentOpponent(null);
-            OpponentVM.SetIsVisible(true);
-        }
-
-        internal void OnTurnStart(ActivePlayer player)
+        public void AttachToHDTEvents()
         {
             try
             {
+                GameEvents.OnGameStart.Add(OnGameStart);
+                GameEvents.OnTurnStart.Add(OnTurnStart);
+                GameEvents.OnGameEnd.Add(OnGameEnded);
+                GameEvents.OnOpponentGet.Add(OnOpponentGet);
+                GameEvents.OnEntityWillTakeDamage.Add(EntityTakeDamage);
+            }
+            catch { }
+        }
+
+        public void OnGameStart()
+        {
+            try
+            {
+                LogsHelper.WriteToFile("OnGameStart");
+                _isInBattle = false;
+                _currentRoundResult = null;
+                _currentOppName = "";
+                _currentRoundNumber = 1;
+
+                OpponentVM.SetCurrentOpponent(null);
+                OpponentVM.SetIsVisible(true);
+            }
+            catch (Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR OnGameStart: " + ex.Message);
+            }
+        }
+
+        public void OnTurnStart(ActivePlayer player)
+        {
+            try
+            {
+                LogsHelper.WriteToFile("OnTurnStart: " + player.ToString());
                 _isInBattle = player == ActivePlayer.Opponent;
                 if (_isInBattle == false)
                 {
+                    LogsHelper.WriteToFile("OnTurnStart - IsInBattle False");
                     if (string.IsNullOrEmpty(_currentOppName) == false)
                     {
                         OpponentDB.AddBattleInfo(_currentOppName, _currentRoundResult);
@@ -50,12 +97,13 @@ namespace HDT_BGFightTracker
                 }
                 else
                 {
+                    LogsHelper.WriteToFile("OnTurnStart - IsInBattle True");
+                    _currentRoundNumber = Core.Game.GetTurnNumber();
                     //_lastRoundResult = new RoundResult();
                     //var current = Core.Game.Player.Hero;
                     //var armor = current.GetTag(GameTag.ARMOR);
                     //_lastRoundResult.HPBefore = current.Health + armor;
                     //_lastRoundResult.RoundNumber = Core.Game.GetTurnNumber();
-                    _currentRoundNumber = Core.Game.GetTurnNumber();
                 }
             }
             catch
@@ -64,10 +112,11 @@ namespace HDT_BGFightTracker
             }
         }
 
-        internal void OnGameEnded()
+        public void OnGameEnded()
         {
             try
             {
+                LogsHelper.WriteToFile("OnGameEnded");
                 OpponentDB.AddBattleInfo(_currentOppName, _currentRoundResult);
 
                 // Save at the end due to scenario where if you restart while playing, you get all the information again.
@@ -82,13 +131,14 @@ namespace HDT_BGFightTracker
             catch { }
         }
 
-        internal void OnOpponentGet()
+        public void OnOpponentGet()
         {
-
             try
             {
+                LogsHelper.WriteToFile("OnOpponentGet");
                 if (_isInBattle == true)
                 {
+                    LogsHelper.WriteToFile("OnOpponentGet: IsInBattle True");
                     var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
 
                     _currentOppName = opponent.Name;
@@ -98,18 +148,25 @@ namespace HDT_BGFightTracker
                         _currentOppName = "KelThuzad (Ghost)";
                     }
 
+                    LogsHelper.WriteToFile("OnOpponentGet: Opponent: " + _currentOppName);
                     var opponentDB = OpponentDB.GetModel(_currentOppName);
                     OpponentVM.SetCurrentOpponent(opponentDB);
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR OnOpponentGet: " + ex.Message);
+            }
         }
 
-        internal void EntityTakeDamage(PredamageInfo info)
+        public void EntityTakeDamage(PredamageInfo info)
         {
             try
             {
-                if (!_isInBattle || !info.Entity.IsHero) return;
+                if (_isInBattle == false || info.Entity.IsHero == false)
+                    return;
+
+                LogsHelper.WriteToFile("EntityTakeDamage");
 
                 var opponent = Hearthstone_Deck_Tracker.Core.Game.OpponentEntity;
                 _currentOppName = opponent.Name;
@@ -119,18 +176,53 @@ namespace HDT_BGFightTracker
                     _currentOppName = "KelThuzad (Ghost)";
                 }
 
+                LogsHelper.WriteToFile("EntityTakeDamage: Opponent: " + _currentOppName);
                 if (info.Entity.IsControlledBy(Core.Game.Player.Id))
                 {
+                    LogsHelper.WriteToFile("EntityTakeDamage. Round Lost");
                     _currentRoundResult = false;
                 }
                 else
                 {
+                    LogsHelper.WriteToFile("EntityTakeDamage. Round Won");
                     _currentRoundResult = true;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LogsHelper.WriteToFile("ERR EntityTakeDamage: " + ex.Message);
+            }
         }
 
         #endregion Plugin Methods
+
+        #region Private Methods
+
+        private int _previousRound;
+        private string _oppName;
+
+        private void CheckForChanges(int round, int totalHealth, Hearthstone_Deck_Tracker.Hearthstone.Entities.Entity opponent)
+        {
+            if (opponent == null)
+                return;
+
+            if (_previousRound == round)
+            {
+                if (_oppName != opponent.Name)
+                {
+                    _oppName = opponent.Name;
+                    LogsHelper.WriteToFile("BATTLE: STARTED " + _oppName);
+                }
+            }
+            else
+            {
+
+                LogsHelper.WriteToFile("BATTLE: ENDED");
+                _previousRound = round;
+                _oppName = opponent.Name;
+            }
+        }
+
+        #endregion Private Methods
     }
 }
